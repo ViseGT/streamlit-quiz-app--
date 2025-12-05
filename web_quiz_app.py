@@ -342,3 +342,4 @@ elif st.session_state.quiz_finished:
 else:
     show_settings_page()
 
+
