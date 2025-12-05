@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import random
-import requests # 這是用來讀取網路資料的套件
+import requests 
 from datetime import datetime
 
 # 設定 Streamlit 頁面基礎配置
@@ -11,78 +11,75 @@ st.set_page_config(page_title="雲端題庫測驗系統", layout="centered")
 #              1. 雲端題庫設定
 # ==========================================
 
-# 【請在此處填入您 GitHub 上各個 JSON 檔案的 "Raw" 網址】
-# 格式為： "顯示名稱": "https://raw.githubusercontent.com/..."
+# 您的 GitHub 專案基礎路徑 (使用 'main' 分支，確保連結穩定)
+BASE_URL = "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/main/"
+FIXED_SUBJECT_NAME = "職業衛生管理師_全部題目 (總題庫)"
+
 QUIZ_SOURCES = {
-    "職業衛生管理學科 (22100)": "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/refs/heads/main/22100_%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%AD%B8%E7%A7%91.json",
-    "職業安全衛生共同科目 (90006)": "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/refs/heads/main/90006_-%E8%81%B7%E6%A5%AD%E5%AE%89%E5%85%A8%E8%A1%9B%E7%94%9F%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "工作倫理與職業道德 (90007)": "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/refs/heads/main/90007_-%E5%B7%A5%E4%BD%9C%E5%80%AB%E7%90%86%E8%88%87%E8%81%B7%E6%A5%AD%E9%81%93%E5%BE%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "環境保護共同科目 (90008)": "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/refs/heads/main/90008_-%E7%92%B0%E5%A2%83%E4%BF%9D%E8%AD%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "節能減碳共同科目 (90009)": "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/refs/heads/main/90009_-%E7%AF%80%E8%83%BD%E6%B8%9B%E7%A2%B3%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "職業衛生管理師_全部題目 (總題庫)": "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/refs/heads/main/%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%B8%AB_%E5%85%A8%E9%83%A8%E9%A1%8C%E7%9B%AE.json",
+    FIXED_SUBJECT_NAME: BASE_URL + "%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%B8%AB_%E5%85%A8%E9%83%A8%E9%A1%8C%E7%9B%AE.json",
+    
+    # 其他 5 個檔案的連結
+    "1. 職業衛生管理學科 (22100)": BASE_URL + "22100_%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%AD%B8%E7%A7%91.json",
+    "2. 職業安全衛生共同科目 (90006)": BASE_URL + "90006_-%E8%81%B7%E6%A5%AD%E5%AE%89%E5%85%A8%E8%A1%9B%E7%94%9F%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "3. 工作倫理與職業道德 (90007)": BASE_URL + "90007_-%E5%B7%A5%E4%BD%9C%E5%80%AB%E7%90%86%E8%88%87%E8%81%B7%E6%A5%AD%E9%81%93%E5%BE%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "4. 環境保護共同科目 (90008)": BASE_URL + "90008_-%E7%92%B0%E5%A2%83%E4%BF%9D%E8%AD%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "5. 節能減碳共同科目 (90009)": BASE_URL + "90009_-%E7%AF%80%E8%83%BD%E6%B8%9B%E7%A2%B3%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
 }
 
 # ==========================================
 #              2. 核心邏輯函數
 # ==========================================
 
-@st.cache_data(ttl=3600)  # 設定快取 1 小時，避免每次按按鈕都重新下載
+@st.cache_data(ttl=3600) 
 def fetch_quiz_data(url):
     """從 GitHub 或其他網址讀取 JSON 資料"""
     try:
-        if "your-username" in url or "您的帳號" in url:
-            return None # 尚未設定網址
-            
         response = requests.get(url)
-        response.raise_for_status()  # 檢查連線是否成功 (200 OK)
+        response.raise_for_status() 
         
-        # 嘗試解析 JSON
         data = response.json()
         
-        # 簡單驗證資料格式是否為列表 (List)
         if isinstance(data, list):
             return data
         else:
             st.error(f"資料格式錯誤：預期為 List，但讀取到 {type(data)}")
             return []
             
+    except json.JSONDecodeError as e:
+        # 特別處理 JSON 語法錯誤 (用於提示使用者修正 JSON 檔案)
+        st.error(f"**讀取題庫失敗！ JSON 格式錯誤！**")
+        st.caption(f"錯誤訊息：{e}")
+        st.caption(f"請仔細檢查檔案中的 **Line {e.lineno} (大約 {e.pos} 字元處)** 是否缺少逗號 (`,`) 或有其他不合法的字元。")
+        return []
+
     except Exception as e:
-        st.error(f"讀取題庫失敗：{e}")
+        st.error(f"**讀取題庫失敗！** 請檢查 GitHub 連結是否為 Raw 連結。錯誤訊息: {e}")
         return []
 
 def init_session_state():
     """初始化狀態變數"""
-    if 'questions' not in st.session_state:
-        st.session_state.questions = []
-    if 'current_index' not in st.session_state:
-        st.session_state.current_index = 0
-    if 'answers' not in st.session_state:
-        st.session_state.answers = {} 
-    if 'quiz_started' not in st.session_state:
-        st.session_state.quiz_started = False
-    if 'quiz_finished' not in st.session_state:
-        st.session_state.quiz_finished = False
-    if 'font_size' not in st.session_state:
-        st.session_state.font_size = 20
-    if 'errors' not in st.session_state:
-        st.session_state.errors = []
-    if 'current_subject' not in st.session_state:
-        st.session_state.current_subject = ""
+    if 'questions' not in st.session_state: st.session_state.questions = []
+    if 'current_index' not in st.session_state: st.session_state.current_index = 0
+    if 'answers' not in st.session_state: st.session_state.answers = {} 
+    if 'quiz_started' not in st.session_state: st.session_state.quiz_started = False
+    if 'quiz_finished' not in st.session_state: st.session_state.quiz_finished = False
+    if 'font_size' not in st.session_state: st.session_state.font_size = 20
+    if 'errors' not in st.session_state: st.session_state.errors = []
+    if 'current_subject' not in st.session_state: st.session_state.current_subject = ""
+    # 新增用於暫存題數輸入的 key，避免快取問題
+    if 'quiz_num_single' not in st.session_state: st.session_state.quiz_num_single = "20"
+    if 'quiz_num_multi' not in st.session_state: st.session_state.quiz_num_multi = "5"
 
 init_session_state()
 
 def start_quiz(url, subject_name, num_single, num_multi):
     """下載資料並開始測驗"""
     
-    # 1. 下載資料
     with st.spinner(f"正在從雲端載入【{subject_name}】題庫，請稍候..."):
         all_qs = fetch_quiz_data(url)
     
-    if not all_qs:
-        st.error("無法載入題庫，請檢查 GitHub 網址是否正確 (需為 Raw 連結)。")
-        return
+    if not all_qs: return
 
-    # 2. 篩選題型
     try:
         num_single = int(num_single)
         num_multi = int(num_multi)
@@ -93,12 +90,11 @@ def start_quiz(url, subject_name, num_single, num_multi):
     single_qs = [q for q in all_qs if q.get('type') == 'single']
     multi_qs = [q for q in all_qs if q.get('type') == 'multi']
 
-    # 3. 檢查題數是否足夠
-    if num_single > len(single_qs):
+    # 檢查題數是否足夠，並自動調整
+    if num_single > len(single_qs): 
         st.warning(f"單選題庫存不足 (共 {len(single_qs)} 題)，已自動調整為最大值。")
         num_single = len(single_qs)
-        
-    if num_multi > len(multi_qs):
+    if num_multi > len(multi_qs): 
         st.warning(f"多選題庫存不足 (共 {len(multi_qs)} 題)，已自動調整為最大值。")
         num_multi = len(multi_qs)
 
@@ -106,32 +102,28 @@ def start_quiz(url, subject_name, num_single, num_multi):
         st.error("總題數為 0，無法開始測驗。")
         return
 
-    # 4. 抽題與亂序
+    # 抽題與亂序
     selected_questions = random.sample(single_qs, num_single) + random.sample(multi_qs, num_multi)
     random.shuffle(selected_questions)
 
-    # 5. 選項亂序處理
+    # 選項亂序處理
     for q in selected_questions:
         original_options = q["options"]
-        original_answers = q["answer"]  # 1-based list
-
-        # 綁定索引並打亂
-        option_with_index = list(enumerate(original_options)) # 0-based index
+        original_answers = q["answer"]
+        option_with_index = list(enumerate(original_options))
         random.shuffle(option_with_index)
 
         shuffled_options = []
         new_answer_indices = []
-
         for new_index, (old_index, opt_text) in enumerate(option_with_index):
             shuffled_options.append(opt_text)
-            # 如果舊的正確答案包含這個選項 (old_index + 1)
             if (old_index + 1) in original_answers:  
-                new_answer_indices.append(new_index + 1) # 轉換為新的 1-based index
+                new_answer_indices.append(new_index + 1)
 
         q["options"] = shuffled_options
         q["answer"] = sorted(new_answer_indices)
 
-    # 6. 更新狀態
+    # 更新狀態
     st.session_state.questions = selected_questions
     st.session_state.answers = {}
     st.session_state.current_index = 0
@@ -141,9 +133,7 @@ def start_quiz(url, subject_name, num_single, num_multi):
     st.rerun()
 
 def save_current_answer():
-    """保存當前題目答案"""
     if not st.session_state.questions: return
-
     q_index = st.session_state.current_index
     q = st.session_state.questions[q_index]
     selected_indices = []
@@ -153,9 +143,7 @@ def save_current_answer():
         current_answer = st.session_state.get(component_key)
         if isinstance(current_answer, str):
             try:
-                # 提取 (1) 中的數字
-                index_str = current_answer.split(')')[0].strip('(')
-                index = int(index_str) 
+                index = int(current_answer.split(')')[0].strip('(')) 
                 selected_indices = [index]
             except ValueError: pass
         
@@ -220,21 +208,34 @@ def show_settings_page():
     subjects = list(QUIZ_SOURCES.keys())
     selected_subject = st.selectbox("請選擇測驗科目：", subjects)
     target_url = QUIZ_SOURCES[selected_subject]
-
-    # 檢查是否已設定網址
-    if "your-username" in target_url or "您的帳號" in target_url:
-        st.warning("⚠️ 尚未設定 GitHub 網址。請修改程式碼中的 `QUIZ_SOURCES` 變數。")
-        st.code(f"目前的網址: {target_url}", language="python")
     
     st.markdown("---")
 
-    # 2. 設定題數
+    # 2. 設定題數 (新增鎖定邏輯)
+    is_fixed_quiz = selected_subject == FIXED_SUBJECT_NAME
+
     st.subheader("抽題設定")
+    
+    if is_fixed_quiz:
+        # 固定題數 60 單選, 20 多選
+        num_single_default = "60"
+        num_multi_default = "20"
+        disabled_state = True
+        st.info(f"👉 選擇【{FIXED_SUBJECT_NAME}】，題數已自動設定為：單選 {num_single_default} 題，多選 {num_multi_default} 題 (共 {int(num_single_default) + int(num_multi_default)} 題)。")
+    else:
+        # 可讓使用者自訂
+        num_single_default = "20"
+        num_multi_default = "5"
+        disabled_state = False
+
     col1, col2 = st.columns(2)
     with col1:
-        num_single = st.text_input("單選題數:", value="20")
+        # 使用 key 儲存最終值
+        num_single = st.text_input("單選題數:", value=num_single_default, disabled=disabled_state, key="quiz_num_single")
     with col2:
-        num_multi = st.text_input("多選題數:", value="5")
+        # 使用 key 儲存最終值
+        num_multi = st.text_input("多選題數:", value=num_multi_default, disabled=disabled_state, key="quiz_num_multi")
+
 
     # 3. 字體設定
     st.subheader("顯示設定")
@@ -257,14 +258,18 @@ def show_settings_page():
 
     st.markdown("---")
     if st.button("🚀 下載題庫並開始測驗", type="primary", use_container_width=True):
-        start_quiz(target_url, selected_subject, num_single, num_multi)
+        # 從 Session State 取得最終的題數 (不論是鎖定的 60/20 或是使用者輸入的)
+        final_num_single = st.session_state.quiz_num_single
+        final_num_multi = st.session_state.quiz_num_multi
+        
+        start_quiz(target_url, selected_subject, final_num_single, final_num_multi)
+
 
 def show_quiz_page():
     q_index = st.session_state.current_index
     q = st.session_state.questions[q_index]
     total_q = len(st.session_state.questions)
     
-    # CSS
     st.markdown(f"<style>.stRadio>div, .stCheckbox>label, p {{ font-size: {st.session_state.font_size}px !important; }}</style>", unsafe_allow_html=True)
 
     st.caption(f"當前科目：{st.session_state.current_subject}")
@@ -307,11 +312,9 @@ def show_result_page():
     if st.session_state.errors:
         st.subheader("📚 錯題檢討")
         
-        # 準備下載資料
         export_data = []
         for err in st.session_state.errors:
             item = err.copy()
-            # 轉回文字選項方便閱讀
             item['your_answer_text'] = [item['options'][i-1] for i in item.get('selected', []) if 0 < i <= len(item['options'])]
             item['correct_answer_text'] = [item['options'][i-1] for i in item.get('answer', []) if 0 < i <= len(item['options'])]
             export_data.append(item)
@@ -341,8 +344,3 @@ elif st.session_state.quiz_finished:
     show_result_page()
 else:
     show_settings_page()
-
-
-
-
-
