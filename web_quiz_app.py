@@ -11,20 +11,24 @@ st.set_page_config(page_title="雲端題庫測驗系統", layout="centered")
 #              1. 雲端題庫設定
 # ==========================================
 
-# 您的 GitHub 專案基礎路徑 (使用 'main' 分支，確保連結穩定)
 BASE_URL = "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/main/"
-FIXED_SUBJECT_NAME = "職業衛生管理師_全部題目 (總題庫)"
+FIXED_SUBJECT_NAME = "1. 職業衛生管理師_全部題目 (總題庫)"
 
 QUIZ_SOURCES = {
     FIXED_SUBJECT_NAME: BASE_URL + "%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%B8%AB_%E5%85%A8%E9%83%A8%E9%A1%8C%E7%9B%AE.json",
     
-    # 其他 5 個檔案的連結
-    "1. 職業衛生管理學科 (22100)": BASE_URL + "22100_%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%AD%B8%E7%A7%91.json",
-    "2. 職業安全衛生共同科目 (90006)": BASE_URL + "90006_-%E8%81%B7%E6%A5%AD%E5%AE%89%E5%85%A8%E8%A1%9B%E7%94%9F%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "3. 工作倫理與職業道德 (90007)": BASE_URL + "90007_-%E5%B7%A5%E4%BD%9C%E5%80%AB%E7%90%86%E8%88%87%E8%81%B7%E6%A5%AD%E9%81%93%E5%BE%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "4. 環境保護共同科目 (90008)": BASE_URL + "90008_-%E7%92%B0%E5%A2%83%E4%BF%9D%E8%AD%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "5. 節能減碳共同科目 (90009)": BASE_URL + "90009_-%E7%AF%80%E8%83%BD%E6%B8%9B%E7%A2%B3%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "2. 職業衛生管理學科 (22100)": BASE_URL + "22100_%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%AD%B8%E7%A7%91.json",
+    "3. 職業安全衛生共同科目 (90006)": BASE_URL + "90006_-%E8%81%B7%E6%A5%AD%E5%AE%89%E5%85%A8%E8%A1%9B%E7%94%9F%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "4. 工作倫理與職業道德 (90007)": BASE_URL + "90007_-%E5%B7%A5%E4%BD%9C%E5%80%AB%E7%90%86%E8%88%87%E8%81%B7%E6%A5%AD%E9%81%93%E5%BE%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "5. 環境保護共同科目 (90008)": BASE_URL + "90008_-%E7%92%B0%E5%A2%83%E4%BF%9D%E8%AD%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "6. 節能減碳共同科目 (90009)": BASE_URL + "90009_-%E7%AF%80%E8%83%BD%E6%B8%9B%E7%A2%B3%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
 }
+
+# 設定固定題數和預設題數
+FIXED_SINGLE = "60"
+FIXED_MULTI = "20"
+DEFAULT_SINGLE = "20"
+DEFAULT_MULTI = "5"
 
 # ==========================================
 #              2. 核心邏輯函數
@@ -46,7 +50,6 @@ def fetch_quiz_data(url):
             return []
             
     except json.JSONDecodeError as e:
-        # 特別處理 JSON 語法錯誤 (用於提示使用者修正 JSON 檔案)
         st.error(f"**讀取題庫失敗！ JSON 格式錯誤！**")
         st.caption(f"錯誤訊息：{e}")
         st.caption(f"請仔細檢查檔案中的 **Line {e.lineno} (大約 {e.pos} 字元處)** 是否缺少逗號 (`,`) 或有其他不合法的字元。")
@@ -66,9 +69,9 @@ def init_session_state():
     if 'font_size' not in st.session_state: st.session_state.font_size = 20
     if 'errors' not in st.session_state: st.session_state.errors = []
     if 'current_subject' not in st.session_state: st.session_state.current_subject = ""
-    # 新增用於暫存題數輸入的 key，避免快取問題
-    if 'quiz_num_single' not in st.session_state: st.session_state.quiz_num_single = "20"
-    if 'quiz_num_multi' not in st.session_state: st.session_state.quiz_num_multi = "5"
+    # 初始化題數輸入的 Session State Key
+    if 'quiz_num_single' not in st.session_state: st.session_state.quiz_num_single = DEFAULT_SINGLE
+    if 'quiz_num_multi' not in st.session_state: st.session_state.quiz_num_multi = DEFAULT_MULTI
 
 init_session_state()
 
@@ -106,7 +109,7 @@ def start_quiz(url, subject_name, num_single, num_multi):
     selected_questions = random.sample(single_qs, num_single) + random.sample(multi_qs, num_multi)
     random.shuffle(selected_questions)
 
-    # 選項亂序處理
+    # 選項亂序處理 (保持原樣，不影響功能)
     for q in selected_questions:
         original_options = q["options"]
         original_answers = q["answer"]
@@ -131,6 +134,8 @@ def start_quiz(url, subject_name, num_single, num_multi):
     st.session_state.quiz_finished = False
     st.session_state.current_subject = subject_name
     st.rerun()
+
+# (其他函數如 save_current_answer, navigate_question, finish_quiz, reset_quiz 保持不變，省略以保持程式碼簡潔)
 
 def save_current_answer():
     if not st.session_state.questions: return
@@ -195,75 +200,6 @@ def reset_quiz():
     st.session_state.quiz_finished = False
     st.session_state.errors = []
     st.rerun()
-
-# ==========================================
-#              3. 頁面顯示
-# ==========================================
-
-def show_settings_page():
-    st.header("☁️ 雲端題庫測驗系統")
-    st.caption("直接從 GitHub 讀取最新題庫，無需上傳檔案")
-
-    # 1. 選擇科目
-    subjects = list(QUIZ_SOURCES.keys())
-    selected_subject = st.selectbox("請選擇測驗科目：", subjects)
-    target_url = QUIZ_SOURCES[selected_subject]
-    
-    st.markdown("---")
-
-    # 2. 設定題數 (新增鎖定邏輯)
-    is_fixed_quiz = selected_subject == FIXED_SUBJECT_NAME
-
-    st.subheader("抽題設定")
-    
-    if is_fixed_quiz:
-        # 固定題數 60 單選, 20 多選
-        num_single_default = "60"
-        num_multi_default = "20"
-        disabled_state = True
-        st.info(f"👉 選擇【{FIXED_SUBJECT_NAME}】，題數已自動設定為：單選 {num_single_default} 題，多選 {num_multi_default} 題 (共 {int(num_single_default) + int(num_multi_default)} 題)。")
-    else:
-        # 可讓使用者自訂
-        num_single_default = "60"
-        num_multi_default = "20"
-        disabled_state = False
-
-    col1, col2 = st.columns(2)
-    with col1:
-        # 使用 key 儲存最終值
-        num_single = st.text_input("單選題數:", value=num_single_default, disabled=disabled_state, key="quiz_num_single")
-    with col2:
-        # 使用 key 儲存最終值
-        num_multi = st.text_input("多選題數:", value=num_multi_default, disabled=disabled_state, key="quiz_num_multi")
-
-
-    # 3. 字體設定
-    st.subheader("顯示設定")
-    new_font_size = st.slider("字體大小", 14, 32, st.session_state.font_size)
-    st.session_state.font_size = new_font_size
-
-    # CSS
-    st.markdown(
-        f"""
-        <style>
-        .stButton>button, .stTextInput>div>div>input, .stSelectbox>div, .stRadio>div, .stCheckbox>label {{
-            font-size: {st.session_state.font_size}px;
-        }}
-        .stMarkdown h3, .stMarkdown h2, .stMarkdown p, .stMarkdown strong {{
-            font-size: {st.session_state.font_size + 2}px;
-        }}
-        </style>
-        """, unsafe_allow_html=True
-    )
-
-    st.markdown("---")
-    if st.button("🚀 下載題庫並開始測驗", type="primary", use_container_width=True):
-        # 從 Session State 取得最終的題數 (不論是鎖定的 60/20 或是使用者輸入的)
-        final_num_single = st.session_state.quiz_num_single
-        final_num_multi = st.session_state.quiz_num_multi
-        
-        start_quiz(target_url, selected_subject, final_num_single, final_num_multi)
-
 
 def show_quiz_page():
     q_index = st.session_state.current_index
@@ -335,6 +271,76 @@ def show_result_page():
         reset_quiz()
 
 # ==========================================
+#              3. 頁面顯示 (修正題數邏輯)
+# ==========================================
+
+def show_settings_page():
+    st.header("☁️ 雲端題庫測驗系統")
+    st.caption("直接從 GitHub 讀取最新題庫，無需上傳檔案")
+
+    # 1. 選擇科目
+    subjects = list(QUIZ_SOURCES.keys())
+    selected_subject = st.selectbox("請選擇測驗科目：", subjects)
+    target_url = QUIZ_SOURCES[selected_subject]
+    
+    st.markdown("---")
+
+    # 2. 設定題數 (修正邏輯: 強制覆寫 Session State)
+    is_fixed_quiz = selected_subject == FIXED_SUBJECT_NAME
+
+    st.subheader("抽題設定")
+    
+    if is_fixed_quiz:
+        # 1. 鎖定並強制設定為 60/20，覆蓋 Session State
+        st.session_state.quiz_num_single = FIXED_SINGLE
+        st.session_state.quiz_num_multi = FIXED_MULTI
+        disabled_state = True
+        st.info(f"👉 選擇【{FIXED_SUBJECT_NAME}】，題數已自動設定為：單選 {FIXED_SINGLE} 題，多選 {FIXED_MULTI} 題 (共 {int(FIXED_SINGLE) + int(FIXED_MULTI)} 題)。")
+    else:
+        # 2. 切換到非固定科目時，檢查是否需重設回預設值
+        if st.session_state.quiz_num_single == FIXED_SINGLE and st.session_state.quiz_num_multi == FIXED_MULTI:
+             st.session_state.quiz_num_single = DEFAULT_SINGLE
+             st.session_state.quiz_num_multi = DEFAULT_MULTI
+        
+        disabled_state = False
+        
+    # 3. 渲染輸入框 (會使用 Session State 中最新的值)
+    col1, col2 = st.columns(2)
+    with col1:
+        # 由於 key 已經將 input 綁定到 Session State，這裡不需要 value 參數
+        st.text_input("單選題數:", disabled=disabled_state, key="quiz_num_single")
+    with col2:
+        st.text_input("多選題數:", disabled=disabled_state, key="quiz_num_multi")
+
+
+    # 4. 字體設定
+    st.subheader("顯示設定")
+    new_font_size = st.slider("字體大小", 14, 32, st.session_state.font_size)
+    st.session_state.font_size = new_font_size
+
+    # CSS
+    st.markdown(
+        f"""
+        <style>
+        .stButton>button, .stTextInput>div>div>input, .stSelectbox>div, .stRadio>div, .stCheckbox>label {{
+            font-size: {st.session_state.font_size}px;
+        }}
+        .stMarkdown h3, .stMarkdown h2, .stMarkdown p, .stMarkdown strong {{
+            font-size: {st.session_state.font_size + 2}px;
+        }}
+        </style>
+        """, unsafe_allow_html=True
+    )
+
+    st.markdown("---")
+    if st.button("🚀 下載題庫並開始測驗", type="primary", use_container_width=True):
+        # 從 Session State 取得最終的題數 (不論是鎖定的 60/20 或是使用者輸入的)
+        final_num_single = st.session_state.quiz_num_single
+        final_num_multi = st.session_state.quiz_num_multi
+        
+        start_quiz(target_url, selected_subject, final_num_single, final_num_multi)
+
+# ==========================================
 #              4. 主程式入口
 # ==========================================
 
@@ -344,4 +350,3 @@ elif st.session_state.quiz_finished:
     show_result_page()
 else:
     show_settings_page()
-
