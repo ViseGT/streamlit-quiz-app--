@@ -224,8 +224,8 @@ def show_settings_page():
         st.info(f"👉 選擇【{FIXED_SUBJECT_NAME}】，題數已自動設定為：單選 {num_single_default} 題，多選 {num_multi_default} 題 (共 {int(num_single_default) + int(num_multi_default)} 題)。")
     else:
         # 可讓使用者自訂
-        num_single_default = "20"
-        num_multi_default = "5"
+        num_single_default = "60"
+        num_multi_default = "20"
         disabled_state = False
 
     col1, col2 = st.columns(2)
@@ -344,3 +344,4 @@ elif st.session_state.quiz_finished:
     show_result_page()
 else:
     show_settings_page()
+
