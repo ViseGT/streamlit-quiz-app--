@@ -12,7 +12,7 @@ st.set_page_config(page_title="雲端題庫測驗系統", layout="centered")
 # ==========================================
 
 BASE_URL = "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/main/"
-FIXED_SUBJECT_NAME = "1. 職業衛生管理師-測驗"
+FIXED_SUBJECT_NAME = "職業衛生管理師-測驗"
 
 QUIZ_SOURCES = {
     FIXED_SUBJECT_NAME: BASE_URL + "%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%B8%AB_%E5%85%A8%E9%83%A8%E9%A1%8C%E7%9B%AE.json",
@@ -350,4 +350,5 @@ elif st.session_state.quiz_finished:
     show_result_page()
 else:
     show_settings_page()
+
 
