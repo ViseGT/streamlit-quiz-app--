@@ -12,16 +12,16 @@ st.set_page_config(page_title="雲端題庫測驗系統", layout="centered")
 # ==========================================
 
 BASE_URL = "https://raw.githubusercontent.com/ViseGT/streamlit-quiz-app--/main/"
-FIXED_SUBJECT_NAME = "1. 職業衛生管理師_全部題目 (總題庫)"
+FIXED_SUBJECT_NAME = "1. 職業衛生管理師-測驗"
 
 QUIZ_SOURCES = {
     FIXED_SUBJECT_NAME: BASE_URL + "%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%B8%AB_%E5%85%A8%E9%83%A8%E9%A1%8C%E7%9B%AE.json",
     
-    "2. 職業衛生管理學科 (22100)": BASE_URL + "22100_%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%AD%B8%E7%A7%91.json",
-    "3. 職業安全衛生共同科目 (90006)": BASE_URL + "90006_-%E8%81%B7%E6%A5%AD%E5%AE%89%E5%85%A8%E8%A1%9B%E7%94%9F%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "4. 工作倫理與職業道德 (90007)": BASE_URL + "90007_-%E5%B7%A5%E4%BD%9C%E5%80%AB%E7%90%86%E8%88%87%E8%81%B7%E6%A5%AD%E9%81%93%E5%BE%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "5. 環境保護共同科目 (90008)": BASE_URL + "90008_-%E7%92%B0%E5%A2%83%E4%BF%9D%E8%AD%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
-    "6. 節能減碳共同科目 (90009)": BASE_URL + "90009_-%E7%AF%80%E8%83%BD%E6%B8%9B%E7%A2%B3%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "1. 職業衛生管理學科 (22100)": BASE_URL + "22100_%E8%81%B7%E6%A5%AD%E8%A1%9B%E7%94%9F%E7%AE%A1%E7%90%86%E5%AD%B8%E7%A7%91.json",
+    "2. 職業安全衛生共同科目 (90006)": BASE_URL + "90006_-%E8%81%B7%E6%A5%AD%E5%AE%89%E5%85%A8%E8%A1%9B%E7%94%9F%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "3. 工作倫理與職業道德 (90007)": BASE_URL + "90007_-%E5%B7%A5%E4%BD%9C%E5%80%AB%E7%90%86%E8%88%87%E8%81%B7%E6%A5%AD%E9%81%93%E5%BE%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "4. 環境保護共同科目 (90008)": BASE_URL + "90008_-%E7%92%B0%E5%A2%83%E4%BF%9D%E8%AD%B7%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
+    "5. 節能減碳共同科目 (90009)": BASE_URL + "90009_-%E7%AF%80%E8%83%BD%E6%B8%9B%E7%A2%B3%E5%85%B1%E5%90%8C%E7%A7%91%E7%9B%AE.json",
 }
 
 # 設定固定題數和預設題數
@@ -350,3 +350,4 @@ elif st.session_state.quiz_finished:
     show_result_page()
 else:
     show_settings_page()
+
